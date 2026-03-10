@@ -1,20 +1,18 @@
-```html
 <!DOCTYPE html>
 <html>
 <head>
 
 <meta charset="UTF-8">
-<title>COSMIC Raya Experience</title>
+<title>Raya Metaverse</title>
 
 <style>
 
 body{
 margin:0;
 overflow:hidden;
-font-family:Arial;
 background:black;
+font-family:Arial;
 color:white;
-text-align:center;
 }
 
 #ui{
@@ -22,20 +20,15 @@ position:absolute;
 top:20px;
 left:50%;
 transform:translateX(-50%);
-background:rgba(0,0,0,0.5);
+background:rgba(0,0,0,0.6);
 padding:15px;
 border-radius:10px;
+text-align:center;
 z-index:10;
 }
 
-input{
-padding:8px;
-border:none;
-border-radius:5px;
-}
-
 button{
-padding:8px 16px;
+padding:10px 20px;
 border:none;
 border-radius:20px;
 background:#22c55e;
@@ -51,15 +44,11 @@ cursor:pointer;
 
 <div id="ui">
 
-🌙 COSMIC Raya Experience
+<h2>🌙 Raya Metaverse 🌙</h2>
 
-<br><br>
+<p>Click start and walk using WASD</p>
 
-<input id="name" placeholder="Your name">
-
-<button onclick="wish()">Generate Wish</button>
-
-<div id="wish"></div>
+<button onclick="startWorld()">Enter Metaverse</button>
 
 </div>
 
@@ -68,139 +57,157 @@ cursor:pointer;
 </audio>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.134/examples/js/controls/PointerLockControls.js"></script>
 
 <script>
 
-/* greeting */
+let camera, scene, renderer, controls
 
-function wish(){
+let moveForward=false
+let moveBackward=false
+let moveLeft=false
+let moveRight=false
 
-let name=document.getElementById("name").value
+function startWorld(){
 
-if(name==="") name="Sahabat"
-
-document.getElementById("wish").innerHTML=
-"✨ Selamat Hari Raya "+name+" ✨<br>Maaf Zahir & Batin"
+document.getElementById("ui").style.display="none"
 
 document.getElementById("music").play()
 
+init()
+
 }
 
-/* THREEJS SCENE */
+/* scene */
 
-const scene=new THREE.Scene()
+function init(){
 
-const camera=new THREE.PerspectiveCamera(
+scene=new THREE.Scene()
+
+camera=new THREE.PerspectiveCamera(
 75,
 window.innerWidth/window.innerHeight,
 0.1,
 1000
 )
 
-const renderer=new THREE.WebGLRenderer()
+renderer=new THREE.WebGLRenderer()
 
 renderer.setSize(window.innerWidth,window.innerHeight)
 
 document.body.appendChild(renderer.domElement)
 
-/* stars */
+/* controls */
 
-const starGeo=new THREE.BufferGeometry()
+controls=new THREE.PointerLockControls(camera,document.body)
 
-const starCount=2000
+document.body.addEventListener("click",()=>controls.lock())
 
-const positions=[]
+scene.add(controls.getObject())
 
-for(let i=0;i<starCount;i++){
+/* ground */
 
-positions.push(
-(Math.random()-0.5)*2000,
-(Math.random()-0.5)*2000,
-(Math.random()-0.5)*2000
-)
+const groundGeo=new THREE.PlaneGeometry(200,200)
 
-}
+const groundMat=new THREE.MeshBasicMaterial({color:0x064e3b})
 
-starGeo.setAttribute(
-'position',
-new THREE.Float32BufferAttribute(positions,3)
-)
+const ground=new THREE.Mesh(groundGeo,groundMat)
 
-const starMat=new THREE.PointsMaterial({color:0xffffff})
+ground.rotation.x=-Math.PI/2
 
-const stars=new THREE.Points(starGeo,starMat)
+scene.add(ground)
 
-scene.add(stars)
+/* mosque placeholder */
+
+const mosqueGeo=new THREE.BoxGeometry(10,6,10)
+
+const mosqueMat=new THREE.MeshBasicMaterial({color:0x222222})
+
+const mosque=new THREE.Mesh(mosqueGeo,mosqueMat)
+
+mosque.position.y=3
+
+mosque.position.z=-20
+
+scene.add(mosque)
 
 /* moon */
 
-const moonGeo=new THREE.SphereGeometry(5,32,32)
+const moonGeo=new THREE.SphereGeometry(4,32,32)
 
 const moonMat=new THREE.MeshBasicMaterial({color:0xffffcc})
 
 const moon=new THREE.Mesh(moonGeo,moonMat)
 
-moon.position.set(20,10,-30)
+moon.position.set(20,15,-40)
 
 scene.add(moon)
 
-/* lanterns */
+/* stars */
 
-function createLantern(){
+for(let i=0;i<2000;i++){
 
-const geo=new THREE.SphereGeometry(0.5,16,16)
+const starGeo=new THREE.SphereGeometry(0.1)
 
-const mat=new THREE.MeshBasicMaterial({color:0xffcc00})
+const starMat=new THREE.MeshBasicMaterial({color:0xffffff})
 
-const lantern=new THREE.Mesh(geo,mat)
+const star=new THREE.Mesh(starGeo,starMat)
 
-lantern.position.set(
-(Math.random()-0.5)*40,
-Math.random()*10,
-(Math.random()-0.5)*40
+star.position.set(
+(Math.random()-0.5)*200,
+Math.random()*100,
+(Math.random()-0.5)*200
 )
 
-scene.add(lantern)
+scene.add(star)
 
 }
 
-for(let i=0;i<20;i++) createLantern()
+/* lantern lights */
 
-/* fireworks */
+for(let i=0;i<20;i++){
 
-function createFirework(){
+const light=new THREE.PointLight(0xffcc00,1,20)
 
-const geo=new THREE.SphereGeometry(0.2,8,8)
-
-const mat=new THREE.MeshBasicMaterial({color:0xffaa00})
-
-const particle=new THREE.Mesh(geo,mat)
-
-particle.position.set(
+light.position.set(
 (Math.random()-0.5)*40,
-Math.random()*20,
+3,
 (Math.random()-0.5)*40
 )
 
-scene.add(particle)
-
-setTimeout(()=>scene.remove(particle),1000)
+scene.add(light)
 
 }
 
-setInterval(createFirework,200)
+/* movement */
 
-/* camera */
+const velocity=new THREE.Vector3()
 
-camera.position.z=20
+const direction=new THREE.Vector3()
 
-/* mouse movement */
+document.addEventListener("keydown",e=>{
 
-document.addEventListener("mousemove",e=>{
+switch(e.code){
 
-camera.position.x=(e.clientX/window.innerWidth-0.5)*10
+case "KeyW": moveForward=true; break
+case "KeyS": moveBackward=true; break
+case "KeyA": moveLeft=true; break
+case "KeyD": moveRight=true; break
 
-camera.position.y=-(e.clientY/window.innerHeight-0.5)*10
+}
+
+})
+
+document.addEventListener("keyup",e=>{
+
+switch(e.code){
+
+case "KeyW": moveForward=false; break
+case "KeyS": moveBackward=false; break
+case "KeyA": moveLeft=false; break
+case "KeyD": moveRight=false; break
+
+}
 
 })
 
@@ -210,13 +217,26 @@ function animate(){
 
 requestAnimationFrame(animate)
 
-stars.rotation.y+=0.0005
+direction.z=Number(moveForward)-Number(moveBackward)
+
+direction.x=Number(moveRight)-Number(moveLeft)
+
+velocity.x -= velocity.x * 0.1
+velocity.z -= velocity.z * 0.1
+
+velocity.z -= direction.z * 0.1
+velocity.x -= direction.x * 0.1
+
+controls.moveRight(-velocity.x)
+controls.moveForward(-velocity.z)
 
 renderer.render(scene,camera)
 
 }
 
 animate()
+
+}
 
 </script>
 
