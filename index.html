@@ -1,242 +1,289 @@
-<!DOCTYPE html>
-<html>
-<head>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
 <meta charset="UTF-8">
-<title>Raya Metaverse</title>
+<title>Selamat Hari Raya Aidilfitri</title>
 
 <style>
 
 body{
 margin:0;
 overflow:hidden;
-background:black;
-font-family:Arial;
+font-family:Arial, sans-serif;
+background:linear-gradient(#021b15,#064e3b);
 color:white;
+text-align:center;
 }
 
-#ui{
+/* canvas */
+
+canvas{
+position:fixed;
+top:0;
+left:0;
+}
+
+/* moon */
+
+.moon{
 position:absolute;
-top:20px;
+top:80px;
+right:120px;
+width:140px;
+height:140px;
+background:#fff4a3;
+border-radius:50%;
+box-shadow:0 0 60px gold;
+animation:glow 3s infinite alternate;
+}
+
+.moon:after{
+content:"";
+position:absolute;
+left:40px;
+top:10px;
+width:140px;
+height:140px;
+background:#021b15;
+border-radius:50%;
+}
+
+@keyframes glow{
+from{box-shadow:0 0 40px gold}
+to{box-shadow:0 0 80px gold}
+}
+
+/* skyline */
+
+.skyline{
+position:absolute;
+bottom:0;
+width:100%;
+height:200px;
+background:black;
+clip-path:polygon(
+0% 100%,0% 60%,10% 60%,10% 40%,20% 40%,20% 60%,
+40% 60%,40% 30%,50% 10%,60% 30%,60% 60%,
+80% 60%,80% 40%,90% 40%,90% 60%,100% 60%,100% 100%
+);
+}
+
+/* greeting box */
+
+.panel{
+position:absolute;
+top:50%;
 left:50%;
-transform:translateX(-50%);
-background:rgba(0,0,0,0.6);
-padding:15px;
-border-radius:10px;
-text-align:center;
-z-index:10;
+transform:translate(-50%,-50%);
+background:rgba(0,0,0,0.5);
+padding:30px;
+border-radius:15px;
+width:320px;
+}
+
+input{
+padding:10px;
+width:80%;
+border:none;
+border-radius:5px;
+margin-top:10px;
 }
 
 button{
+margin-top:15px;
 padding:10px 20px;
 border:none;
 border-radius:20px;
 background:#22c55e;
 color:white;
 cursor:pointer;
+font-size:16px;
+}
+
+#greeting{
+margin-top:20px;
+font-size:18px;
+}
+
+/* ketupat */
+
+.ketupat{
+position:absolute;
+font-size:35px;
+animation:float 10s linear infinite;
+}
+
+@keyframes float{
+0%{transform:translateY(100vh)}
+100%{transform:translateY(-120vh)}
 }
 
 </style>
-
 </head>
 
 <body>
 
-<div id="ui">
+<canvas id="canvas"></canvas>
 
-<h2>🌙 Raya Metaverse 🌙</h2>
+<div class="moon"></div>
 
-<p>Click start and walk using WASD</p>
+<div class="panel">
 
-<button onclick="startWorld()">Enter Metaverse</button>
+<h2>🌙 Raya Wishes Generator 🌙</h2>
+
+<p>Enter your name</p>
+
+<input id="nameInput" placeholder="Your name">
+
+<br>
+
+<button onclick="generateWish()">Generate Raya Wish</button>
+
+<div id="greeting"></div>
 
 </div>
 
-<audio id="music" loop>
-<source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">
-</audio>
+<div class="skyline"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.134/examples/js/controls/PointerLockControls.js"></script>
+<!-- ketupat -->
+
+<div class="ketupat" style="left:10%">🟩</div>
+<div class="ketupat" style="left:25%;animation-delay:2s;">🟩</div>
+<div class="ketupat" style="left:40%;animation-delay:4s;">🟩</div>
+<div class="ketupat" style="left:60%;animation-delay:1s;">🟩</div>
+<div class="ketupat" style="left:80%;animation-delay:3s;">🟩</div>
 
 <script>
 
-let camera, scene, renderer, controls
+/* greeting generator */
 
-let moveForward=false
-let moveBackward=false
-let moveLeft=false
-let moveRight=false
+function generateWish(){
 
-function startWorld(){
+let name=document.getElementById("nameInput").value
 
-document.getElementById("ui").style.display="none"
+if(name===""){
+name="Sahabat"
+}
 
-document.getElementById("music").play()
+document.getElementById("greeting").innerHTML=
+"✨ Selamat Hari Raya Aidilfitri "+name+" ✨<br><br>Maaf Zahir dan Batin.<br>Semoga Syawal ini membawa kebahagiaan dan keberkatan kepada anda dan keluarga."
 
-init()
+createConfetti()
 
 }
 
-/* scene */
+/* star + fireworks engine */
 
-function init(){
+const canvas=document.getElementById("canvas")
+const ctx=canvas.getContext("2d")
 
-scene=new THREE.Scene()
+canvas.width=window.innerWidth
+canvas.height=window.innerHeight
 
-camera=new THREE.PerspectiveCamera(
-75,
-window.innerWidth/window.innerHeight,
-0.1,
-1000
-)
+let stars=[]
+let fireworks=[]
+let confetti=[]
 
-renderer=new THREE.WebGLRenderer()
+for(let i=0;i<150;i++){
 
-renderer.setSize(window.innerWidth,window.innerHeight)
-
-document.body.appendChild(renderer.domElement)
-
-/* controls */
-
-controls=new THREE.PointerLockControls(camera,document.body)
-
-document.body.addEventListener("click",()=>controls.lock())
-
-scene.add(controls.getObject())
-
-/* ground */
-
-const groundGeo=new THREE.PlaneGeometry(200,200)
-
-const groundMat=new THREE.MeshBasicMaterial({color:0x064e3b})
-
-const ground=new THREE.Mesh(groundGeo,groundMat)
-
-ground.rotation.x=-Math.PI/2
-
-scene.add(ground)
-
-/* mosque placeholder */
-
-const mosqueGeo=new THREE.BoxGeometry(10,6,10)
-
-const mosqueMat=new THREE.MeshBasicMaterial({color:0x222222})
-
-const mosque=new THREE.Mesh(mosqueGeo,mosqueMat)
-
-mosque.position.y=3
-
-mosque.position.z=-20
-
-scene.add(mosque)
-
-/* moon */
-
-const moonGeo=new THREE.SphereGeometry(4,32,32)
-
-const moonMat=new THREE.MeshBasicMaterial({color:0xffffcc})
-
-const moon=new THREE.Mesh(moonGeo,moonMat)
-
-moon.position.set(20,15,-40)
-
-scene.add(moon)
-
-/* stars */
-
-for(let i=0;i<2000;i++){
-
-const starGeo=new THREE.SphereGeometry(0.1)
-
-const starMat=new THREE.MeshBasicMaterial({color:0xffffff})
-
-const star=new THREE.Mesh(starGeo,starMat)
-
-star.position.set(
-(Math.random()-0.5)*200,
-Math.random()*100,
-(Math.random()-0.5)*200
-)
-
-scene.add(star)
-
-}
-
-/* lantern lights */
-
-for(let i=0;i<20;i++){
-
-const light=new THREE.PointLight(0xffcc00,1,20)
-
-light.position.set(
-(Math.random()-0.5)*40,
-3,
-(Math.random()-0.5)*40
-)
-
-scene.add(light)
-
-}
-
-/* movement */
-
-const velocity=new THREE.Vector3()
-
-const direction=new THREE.Vector3()
-
-document.addEventListener("keydown",e=>{
-
-switch(e.code){
-
-case "KeyW": moveForward=true; break
-case "KeyS": moveBackward=true; break
-case "KeyA": moveLeft=true; break
-case "KeyD": moveRight=true; break
-
-}
-
+stars.push({
+x:Math.random()*canvas.width,
+y:Math.random()*canvas.height,
+r:Math.random()*2
 })
 
-document.addEventListener("keyup",e=>{
+}
 
-switch(e.code){
+function createFirework(){
 
-case "KeyW": moveForward=false; break
-case "KeyS": moveBackward=false; break
-case "KeyA": moveLeft=false; break
-case "KeyD": moveRight=false; break
+let x=Math.random()*canvas.width
+let y=Math.random()*canvas.height/2
+
+for(let i=0;i<60;i++){
+
+fireworks.push({
+x:x,
+y:y,
+vx:(Math.random()-0.5)*6,
+vy:(Math.random()-0.5)*6,
+life:100
+})
 
 }
 
+}
+
+setInterval(createFirework,1800)
+
+/* confetti */
+
+function createConfetti(){
+
+for(let i=0;i<120;i++){
+
+confetti.push({
+x:Math.random()*canvas.width,
+y:-20,
+vy:Math.random()*3+2
 })
 
-/* animation */
+}
+
+}
 
 function animate(){
 
+ctx.fillStyle="rgba(0,0,0,0.25)"
+ctx.fillRect(0,0,canvas.width,canvas.height)
+
+/* stars */
+
+ctx.fillStyle="white"
+
+stars.forEach(s=>{
+ctx.beginPath()
+ctx.arc(s.x,s.y,s.r,0,Math.PI*2)
+ctx.fill()
+})
+
+/* fireworks */
+
+fireworks.forEach((f,i)=>{
+
+f.x+=f.vx
+f.y+=f.vy
+f.life--
+
+ctx.fillStyle="gold"
+ctx.fillRect(f.x,f.y,3,3)
+
+if(f.life<=0){
+fireworks.splice(i,1)
+}
+
+})
+
+/* confetti */
+
+confetti.forEach((c,i)=>{
+
+c.y+=c.vy
+
+ctx.fillStyle="lime"
+ctx.fillRect(c.x,c.y,4,4)
+
+if(c.y>canvas.height){
+confetti.splice(i,1)
+}
+
+})
+
 requestAnimationFrame(animate)
-
-direction.z=Number(moveForward)-Number(moveBackward)
-
-direction.x=Number(moveRight)-Number(moveLeft)
-
-velocity.x -= velocity.x * 0.1
-velocity.z -= velocity.z * 0.1
-
-velocity.z -= direction.z * 0.1
-velocity.x -= direction.x * 0.1
-
-controls.moveRight(-velocity.x)
-controls.moveForward(-velocity.z)
-
-renderer.render(scene,camera)
 
 }
 
 animate()
-
-}
 
 </script>
 
